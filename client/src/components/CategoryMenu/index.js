@@ -6,20 +6,35 @@ import {
 import { useQuery } from "@apollo/react-hooks";
 import { QUERY_CATEGORIES } from "../../utils/queries";
 import { useStoreContext } from "../../utils/GlobalState";
+import { idbPromise } from "../../utils/helpers";
 
 function CategoryMenu() {
   const [state, dispatch] = useStoreContext();
   const { categories } = state;
-  const { data: categoryData } = useQuery(QUERY_CATEGORIES);
+  const { loading, data: categoryData } = useQuery(QUERY_CATEGORIES);
 
   useEffect(() => {
+    //if there is categoryData to be stored
     if (categoryData) {
+      //lets store it in the global state object
       dispatch({
         type: UPDATE_CATEGORIES,
         categories: categoryData.categories,
       });
+      //but lets also take each category and save it to IndexedDB using the helper function being imported
+      categoryData.categories.forEach((category) => {
+        idbPromise("categories", "put", category);
+      });
+      //else if to check if 'loading' is undefined in 'useQuery()' hook
+    } else if (!loading) {
+      idbPromise("categories", "get").then((categories) => {
+        dispatch({
+          type: UPDATE_CATEGORIES,
+          categories: categories,
+        });
+      });
     }
-  }, [categoryData, dispatch]);
+  }, [categoryData, loading, dispatch]);
 
   const handleClick = (id) => {
     dispatch({
