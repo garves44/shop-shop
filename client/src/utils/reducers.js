@@ -10,6 +10,7 @@ import {
   TOGGLE_CART,
 } from "./actions";
 import { useReducer } from "react";
+import { combineReducers } from "react-redux";
 
 export const reducer = (state, action) => {
   switch (action.type) {
@@ -75,6 +76,11 @@ export const reducer = (state, action) => {
   }
 };
 
+const allReducers = combineReducers({
+  users: reducer,
+});
+
+export default allReducers;
 export function useProductReducer(initialState) {
   return useReducer(reducer, initialState);
 }
